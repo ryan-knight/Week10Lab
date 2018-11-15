@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -16,7 +18,11 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import models.User;
 import services.AccountService;
+import services.UserService;
 
 /**
  *
@@ -37,10 +43,20 @@ public class AdminFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
-        AccountService as = new AccountService();
+        UserService us = new UserService();
         HttpServletRequest req = (HttpServletRequest)request;
         HttpSession session = req.getSession();
-
+        String username = (String)session.getAttribute("username");
+        try {
+            User user = us.get(username);
+            if(user.getRole().getRoleid() != 1)
+            {
+                throw new Exception();
+            }
+            chain.doFilter(request, response);
+        } catch (Exception ex) {
+            ((HttpServletResponse)response).sendRedirect("home");
+        }
     }
 
     @Override
